@@ -1,0 +1,63 @@
+import React, { useEffect, useState, useContext } from "react";
+import { auth, db } from "../../firebase/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import type { User } from "firebase/auth";
+import { Roles } from "../../enums/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+
+interface IUser {
+  currentUser: any;
+  isUserLoggedIn: boolean;
+  loading: boolean;
+  currentRole: Roles;
+}
+
+const AuthContext = React.createContext({} as IUser);
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
+
+export function AuthProvider({ children }: { children: any }) {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [currentRole, setCurrentRole] = useState(Roles.USER);
+
+  const initializeUser = async (user: User | null) => {
+    setLoading(true);
+
+    if (user) {
+      setCurrentUser({ ...user });
+      setIsUserLoggedIn(true);
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      // set this role to the context
+      const role = userDoc.exists() ? userDoc.data().role : Roles.USER;
+      setCurrentRole(role);
+    } else {
+      setCurrentUser(null);
+      setIsUserLoggedIn(false);
+    }
+
+    setLoading(false);
+  };
+
+  const value = {
+    currentUser,
+    isUserLoggedIn,
+    loading,
+    currentRole,
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, initializeUser);
+    return () => unsubscribe();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
+}

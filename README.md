@@ -1,4 +1,11 @@
-# React + TypeScript + Vite
+# Cheaf Assessment
+## Roles:
+- Vegano
+- Frecuente
+- Interno
+- Visitante no es un rol, solo significa que no es usuario autenticado
+- Se agrega un nuevo rol "USER" "usuario" para que exista un rol por defecto, en caso de que el usuario no elija uno
+
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
