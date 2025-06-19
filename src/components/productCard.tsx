@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardMedia from "@mui/material/CardMedia";
@@ -12,7 +12,9 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShareIcon from "@mui/icons-material/Share";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import RemoveShoppingCartIcon from '@mui/icons-material/RemoveShoppingCart';
+import RemoveShoppingCartIcon from "@mui/icons-material/RemoveShoppingCart";
+import { createPackage } from "../firebase/packages";
+import { Product } from "../types/products";
 
 interface IProductCardProps {
   title?: string;
@@ -29,6 +31,9 @@ const ProductCard: React.FC<IProductCardProps> = ({
   price,
   isAddedToCart,
 }) => {
+  const [packageName, setPackageName] = useState("");
+
+  const handleAddToPackage = (product: Product) => {};
   return (
     <Card sx={{ maxWidth: 345 }}>
       <CardHeader

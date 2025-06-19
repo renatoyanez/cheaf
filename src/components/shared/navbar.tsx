@@ -15,6 +15,7 @@ import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { doSignOut } from "../../firebase/auth";
 import { INavElement } from "../../types/navigate";
+import { useAuth } from "../../context/authContext";
 
 const pages: Partial<INavElement>[] = [
   {
@@ -22,15 +23,45 @@ const pages: Partial<INavElement>[] = [
     path: "/products",
   },
   {
-    label: "Pricing",
-  },
-  {
-    label: "Blog",
+    label: "My Packages",
+    path: "/my-packages",
+    isPrivate: true,
   },
 ];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+const userSettings: Partial<INavElement>[] = [
+  {
+    label: "Login",
+    path: "/login",
+    isNotLoguedUser: true,
+  },
+  {
+    label: "Register",
+    path: "/register",
+    isNotLoguedUser: true,
+  },
+  {
+    label: "Home",
+    path: "/home",
+    isPrivate: true,
+  },
+  {
+    label: "Products",
+    path: "/products",
+  },
+  {
+    label: "My Packages",
+    path: "/my-packages",
+    isPrivate: true,
+  },
+  {
+    label: "Logout",
+    isPrivate: true,
+  },
+];
 
 const NavBar = () => {
+  const { isUserLoggedIn, currentUser, currentRole } = useAuth();
+
   const navigate = useNavigate();
 
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
@@ -51,12 +82,15 @@ const NavBar = () => {
     setAnchorElUser(null);
   };
 
-  const handleSettingsClick = (settingOption: string) => {
-    if (settingOption === "Logout")
+  const handleSettingsClick = (setting: Partial<INavElement>) => {
+    if (setting.label === "Logout") {
       doSignOut().then(() => {
-        navigate("/login");
+        handleNavigate("/login");
       });
-    else setAnchorElUser(null);
+    } else {
+      handleNavigate(setting.path || "/");
+      setAnchorElUser(null);
+    }
   };
 
   const handleNavigate = (path: string) => {
@@ -68,22 +102,25 @@ const NavBar = () => {
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-          <Typography
-            variant="h6"
-            noWrap
-            onClick={() => navigate('/home')}
-            sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            HOME
-          </Typography>
+          {isUserLoggedIn && (
+            <Typography
+              variant="h6"
+              noWrap
+              onClick={() => handleNavigate("/home")}
+              sx={{
+                mr: 2,
+                display: { xs: "none", md: "flex" },
+                fontFamily: "monospace",
+                fontWeight: 700,
+                letterSpacing: ".3rem",
+                color: "inherit",
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              HOME
+            </Typography>
+          )}
 
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
@@ -112,23 +149,26 @@ const NavBar = () => {
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: "block", md: "none" } }}
             >
-              {pages.map((page) => (
-                <MenuItem
-                  key={page.label}
-                  onClick={() => handleNavigate(page.path || "/")}
-                >
-                  <Typography sx={{ textAlign: "center" }}>
-                    {page.label}
-                  </Typography>
-                </MenuItem>
-              ))}
+              {pages.map((page) => {
+                if (!isUserLoggedIn && page.isPrivate) return;
+                return (
+                  <MenuItem
+                    key={page.label}
+                    onClick={() => handleNavigate(page.path || "/")}
+                  >
+                    <Typography sx={{ textAlign: "center" }}>
+                      {page.label}
+                    </Typography>
+                  </MenuItem>
+                );
+              })}
             </Menu>
           </Box>
           <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
           <Typography
             variant="h5"
             noWrap
-            onClick={() => navigate('/home')}
+            onClick={() => handleNavigate("/home")}
             sx={{
               mr: 2,
               display: { xs: "flex", md: "none" },
@@ -143,22 +183,30 @@ const NavBar = () => {
             HOME
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {pages.map((page) => (
-              <Button
-                key={page.label}
-                onClick={() => handleNavigate(page.path || "/")}
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                {page.label}
-              </Button>
-            ))}
+            {pages.map((page) => {
+              if (!isUserLoggedIn && page.isPrivate) return;
+              return (
+                <Button
+                  key={page.label}
+                  onClick={() => handleNavigate(page.path || "/")}
+                  sx={{ my: 2, color: "white", display: "block" }}
+                >
+                  {page.label}
+                </Button>
+              );
+            })}
           </Box>
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-              </IconButton>
-            </Tooltip>
+            <section style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Typography>
+                Role: {currentRole}
+              </Typography>
+              <Tooltip title="Open settings">
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar alt="P" src="/route/to/profile-photo.png" />
+                </IconButton>
+              </Tooltip>
+            </section>
             <Menu
               sx={{ mt: "45px" }}
               id="menu-appbar"
@@ -175,16 +223,20 @@ const NavBar = () => {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => handleSettingsClick(setting)}
-                >
-                  <Typography sx={{ textAlign: "center" }}>
-                    {setting}
-                  </Typography>
-                </MenuItem>
-              ))}
+              {userSettings.map((setting) => {
+                if (!isUserLoggedIn && setting.isPrivate) return;
+                if (isUserLoggedIn && setting.isNotLoguedUser) return;
+                return (
+                  <MenuItem
+                    key={setting.label}
+                    onClick={() => handleSettingsClick(setting)}
+                  >
+                    <Typography sx={{ textAlign: "center" }}>
+                      {setting.label}
+                    </Typography>
+                  </MenuItem>
+                );
+              })}
             </Menu>
           </Box>
         </Toolbar>

@@ -1,11 +1,12 @@
 import { useRoutes } from "react-router-dom";
 import Home from "./pages/home";
+import MyPackages from "./pages/myPackages";
 import Login from "./components/auth/login";
 import Register from "./components/auth/register";
 import PrivateRoute from "./privateRoute";
 import { AuthProvider } from "./context/authContext";
 import MainLayout from "./layouts/mainLayout";
-import ProductsLayout from './layouts/productsLayout'
+import ProductsLayout from "./layouts/productsLayout";
 import "./App.css";
 
 const App = () => {
@@ -19,8 +20,13 @@ const App = () => {
           element: <PrivateRoute element={<Home />} />,
         },
         {
+          path: "my-packages",
+          element: <PrivateRoute element={<MyPackages />} />,
+        },
+        {
           path: "products",
           element: <ProductsLayout />,
+          // The ProductsLayout is wrapped with the products context
         },
       ],
     },

@@ -8,7 +8,8 @@ import {
   useCallback,
 } from "react";
 import { Product } from "../../types/products";
-import { useAuth } from '../authContext'
+import { useAuth } from "../authContext";
+import { filterProductsByRoles } from "../../helpers/products";
 
 type ProductsContextType = {
   products: Product[];
@@ -18,46 +19,34 @@ type ProductsContextType = {
   resetProducts: () => void;
 };
 
-const LOCAL_STORAGE_KEY = "products_data";
-
 const ProductsContext = createContext<ProductsContextType | undefined>(
   undefined
 );
 
 export const ProductsProvider = ({ children }: { children: ReactNode }) => {
   const { currentRole } = useAuth();
-  console.log(currentRole);
-  
+
   const [originalProducts, setOriginalProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as Product[];
-        setOriginalProducts(parsed);
-        setProducts(parsed);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error parsing localStorage data", err);
-        fetchProductsFromAPI();
-      }
-    } else {
-      fetchProductsFromAPI();
-    }
+    fetchProductsFromAPI();
   }, []);
 
   const fetchProductsFromAPI = () => {
     fetch("https://dummyjson.com/products/category/groceries")
       .then((res) => res.json())
       .then((data) => {
-        setOriginalProducts(data);
-        setProducts(data);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+
+        const filteredDataList = filterProductsByRoles(
+          [currentRole],
+          data.products
+        );
+
+        setOriginalProducts(filteredDataList);
+        setFilteredProducts(filteredDataList);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));

@@ -3,9 +3,11 @@
 - Vegano
 - Frecuente
 - Interno
-- Visitante no es un rol, solo significa que no es usuario autenticado
+- Visitante solamente para el usuario no autenticado
 - Se agrega un nuevo rol "USER" "usuario" para que exista un rol por defecto, en caso de que el usuario no elija uno
 
+## Paquetes:
+Los paquetes pueden ser de hasta 5 simultaneamente por temas practicos de este assessment, cada paquete tiene un limite de productos dependiendo del rol, en la lista de products, cada producto tiene un icono de carrito (solo funciona para el usuario autenticado), si el usuario ya tiene paquetes, el icono despliega una lista de los paquetes disponibles y el usuario debe clickear al cual desea agregar el producto seleccionado, caso contrario, el boton simplemente crea el paquete y agrega el producto a ese paquete. Si el producto ya existe en un paquete, el icono tambien debe desplegar la lista de paquetes pero con la opcion de agregar o quitar de uno de ellos
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

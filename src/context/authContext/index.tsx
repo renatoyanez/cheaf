@@ -6,7 +6,7 @@ import { Roles } from "../../enums/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 interface IUser {
-  currentUser: any;
+  currentUser: User;
   isUserLoggedIn: boolean;
   loading: boolean;
   currentRole: Roles;
@@ -18,7 +18,7 @@ export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-export function AuthProvider({ children }: { children: any }) {
+export const AuthProvider = ({ children }: { children: any }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,9 +35,12 @@ export function AuthProvider({ children }: { children: any }) {
       // set this role to the context
       const role = userDoc.exists() ? userDoc.data().role : Roles.USER;
       setCurrentRole(role);
+      localStorage.setItem("role", JSON.stringify(role));
     } else {
+      setCurrentRole(Roles.VISITOR);
       setCurrentUser(null);
       setIsUserLoggedIn(false);
+      localStorage.setItem("role", JSON.stringify(Roles.VISITOR));
     }
 
     setLoading(false);

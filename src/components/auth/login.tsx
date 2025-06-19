@@ -143,6 +143,10 @@ const Login = () => {
         >
           Sign in
         </Typography>
+        <Typography variant="h6" sx={{}}>
+          Just visiting?{" "}
+          <Link to={"/products"}>Explore some of our products</Link>
+        </Typography>
         <Box
           component="div"
           // onSubmit={handleSubmit}
@@ -213,7 +217,9 @@ const Login = () => {
           >
             Sign in
           </Button>
-          {isLoginError && <Typography color="error">{errorMessage}</Typography>}
+          {isLoginError && (
+            <Typography color="error">{errorMessage}</Typography>
+          )}
         </Box>
         <Divider>or</Divider>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>

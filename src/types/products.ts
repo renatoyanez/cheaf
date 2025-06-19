@@ -3,10 +3,7 @@ export type Product = {
   title: string;
   description: string;
   price: number;
+  images: string[] | string;
+  tags: string[];
+  rating?: number;
 };
-
-// export type ProductsContextType = {
-//   products: Product[];
-//   loading: boolean;
-//   error: string | null;
-// };

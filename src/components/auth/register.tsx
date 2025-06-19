@@ -167,6 +167,10 @@ const Register = () => {
         >
           Register
         </Typography>
+        <Typography variant="h6" sx={{}}>
+          Just visiting?{" "}
+          <Link to={"/products"}>Explore some of our products</Link>
+        </Typography>
         <Box
           component="form"
           onSubmit={handleSubmit}
@@ -219,6 +223,10 @@ const Register = () => {
             >
               {Object.keys(Roles).map((key) => {
                 const label: string = Roles[key as keyof typeof Roles];
+                // Visitor is not a possible role for a created user
+                // Only the not logued user can be a Visitor
+                if (key === Roles.VISITOR) return;
+
                 return (
                   <MenuItem key={key} value={key}>
                     {capitalize(label)}

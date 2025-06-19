@@ -5,7 +5,6 @@ import { useAuth } from "./context/authContext";
 const PrivateRoute = ({ element }: { element: ReactNode }) => {
   const { isUserLoggedIn } = useAuth();
   const location = useLocation();
-  console.log({location});
   
   if (!isUserLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;

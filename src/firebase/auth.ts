@@ -17,7 +17,6 @@ export const doCreateUserWithEmailAndPassword = async (
   password: string,
   roles?: string[] | string
 ) => {
-  
   const createUser = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -31,6 +30,7 @@ export const doCreateUserWithEmailAndPassword = async (
     role: roles || Roles.USER,
     email: user.email,
   });
+  // localStorage.removeItem("products_data");
   localStorage.setItem("role", JSON.stringify(roles));
   return createUserWithEmailAndPassword(auth, email, password);
 };
@@ -50,6 +50,8 @@ export const doSignInWithEmailAndPassword = async (
   const userDoc = await getDoc(doc(db, "users", user.uid));
   // set this role to the context
   const role = userDoc.exists() ? userDoc.data().role : Roles.USER;
+
+  // localStorage.removeItem("products_data");
   localStorage.setItem("role", JSON.stringify(role));
 
   return userCredential;
@@ -64,6 +66,8 @@ export const doSignInWithGoogle = async () => {
 };
 
 export const doSignOut = () => {
+  localStorage.removeItem("role");
+  // localStorage.removeItem("products_data");
   return auth.signOut();
 };
 
