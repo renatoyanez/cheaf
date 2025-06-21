@@ -87,5 +87,4 @@ Each app project has the following project structure:
 - **hooks**: Hooks customizados reutilizables.
 - **pages**: Vistas de la app, se rutean.
 - **types**: Types para modelar los tipos de datos que se usan en la app.
-- **config**: The `/config` folder contains config files as the interfaces that holds all env variables and hanldes the API config (e.g. handling auth heades).
 - **layouts**: Layouts para cubrir distintas vistas
