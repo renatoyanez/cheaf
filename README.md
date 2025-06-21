@@ -2,13 +2,6 @@
 
 Proyecto de proceso de selección para Cheaf. Es una simple web que permite al usuario ver productos (sacados de una mock API pública), opción para guardar productos en paquetes (solo para usuario autenticado) con limitaciones para cada tipo de rol, el rol se elige al momento de crear un usuario.
 
-### Disclaimer:
-Hubo decisiones "indeseables" durante el desarrollo de este proyecto por cuestiones de tiempo, ya que solo podía trabajar en esto después de mi día laboral y el tiempo era limitado, además había un deadline que cumplir. Ejemplos:
-- No todas las tareas o ejecuciones asíncronas tienen manejo apropiado de loaders o error catching, algunos componentes no estan debidamente divididos en archivos más pequeños, la decisión de usar Material-ui fue precisamente para tener componentes estéticos de entrada y no perder tiempo estilizando todo.
-- No todas las promesas se manejan de la misma forma, en algunos lugares se usa `try/catch` y en otros `.then()`, esta práctica es un poco desordenada para mi gusto, pero funciona perfectamente bien.
-- Solo algunas tareas y efectos en componentes (useEffect) están debidamente memoizados o manejados para cuidar la performance, no me encanta admitirlo, pero el tiempo apremiaba.
-- Los archivos de componentes no están capitalizados, esto es más por gustos, no afecta el funcionamiento de nada
-
 ### Roles:
 - Vegano
 - Frecuente
@@ -88,3 +81,11 @@ Each app project has the following project structure:
 - **pages**: Vistas de la app, se rutean.
 - **types**: Types para modelar los tipos de datos que se usan en la app.
 - **layouts**: Layouts para cubrir distintas vistas
+
+
+### Disclaimer:
+Hubo decisiones "indeseables" durante el desarrollo de este proyecto por cuestiones de tiempo, ya que solo podía trabajar en esto después de mi día laboral y el tiempo era limitado, además había un deadline que cumplir. Ejemplos:
+- No todas las tareas o ejecuciones asíncronas tienen manejo apropiado de loaders o error catching, algunos componentes no estan debidamente divididos en archivos más pequeños, la decisión de usar Material-ui fue precisamente para tener componentes estéticos de entrada y no perder tiempo estilizando todo.
+- No todas las promesas se manejan de la misma forma, en algunos lugares se usa `try/catch` y en otros `.then()`, esta práctica es un poco desordenada para mi gusto, pero funciona perfectamente bien.
+- Solo algunas tareas y efectos en componentes (useEffect) están debidamente memoizados o manejados para cuidar la performance, no me encanta admitirlo, pero el tiempo apremiaba.
+- Los archivos de componentes no están capitalizados, esto es más por gustos, no afecta el funcionamiento de nada
