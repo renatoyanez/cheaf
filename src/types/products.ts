@@ -6,4 +6,5 @@ export type Product = {
   images: string[] | string;
   tags: string[];
   rating?: number;
+  thumbnail?: string
 };

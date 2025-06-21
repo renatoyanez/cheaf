@@ -60,7 +60,7 @@ const userSettings: Partial<INavElement>[] = [
 ];
 
 const NavBar = () => {
-  const { isUserLoggedIn, currentUser, currentRole } = useAuth();
+  const { isUserLoggedIn, currentRole } = useAuth();  
 
   const navigate = useNavigate();
 
