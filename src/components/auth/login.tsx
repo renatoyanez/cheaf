@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
@@ -63,6 +63,8 @@ const LoginContainer = styled(Stack)(({ theme }) => ({
 
 const Login = () => {
   const { isUserLoggedIn } = useAuth();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/home";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -134,7 +136,7 @@ const Login = () => {
 
   return (
     <LoginContainer direction="column" justifyContent="space-between">
-      {isUserLoggedIn && <Navigate to={"/home"} replace={true} />}
+      {isUserLoggedIn && <Navigate to={from} replace />}
       <Card variant="outlined">
         <Typography
           component="h1"
@@ -149,8 +151,6 @@ const Login = () => {
         </Typography>
         <Box
           component="div"
-          // onSubmit={handleSubmit}
-          // noValidate
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -204,7 +204,6 @@ const Login = () => {
             control={<Checkbox value="remember" color="primary" />}
             label="Remember me"
           />
-          {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
           <Button
             type="submit"
             fullWidth

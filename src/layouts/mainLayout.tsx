@@ -5,12 +5,13 @@ import Navbar from "../components/shared/navbar";
 import "../App.css";
 
 const MainLayout = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, currentRole } = useAuth();
 
   return (
     <PackagesProvider
       userId={currentUser?.uid || ""}
       userEmail={currentUser?.email || ""}
+      userRole={currentRole}
     >
       <Navbar />
       <div className="app-container">

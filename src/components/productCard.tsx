@@ -30,8 +30,14 @@ interface IProductCardProps {
 
 const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
   const { currentUser } = useAuth();
-  const { packages, handleAddToPackage, addPackage } = usePackages();
-  console.log({ packages });
+  const {
+    packages,
+    addPackage,
+    updatePackage,
+    handleRemoveProductFromPackage,
+    canAddPackage,
+    isPackageIsFullByRole,
+  } = usePackages();
 
   const [packageName, setPackageName] = useState("Unnamed package");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -67,6 +73,24 @@ const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
     })
       .then(() => handleClosePackageName())
       .catch((err) => console.log(err));
+  };
+
+  const handleAddOrRemoveProduct = (
+    productIsInPackage: boolean,
+    currentPack?: Package,
+    newProduct?: Product
+  ) => {    
+    if (productIsInPackage) {
+      handleRemoveProductFromPackage(
+        currentPack.products,
+        newProduct.id,
+        currentPack.packageId
+      );
+    } else {
+      updatePackage(currentPack.packageId, {
+        products: [...currentPack.products, newProduct],
+      });
+    }
   };
 
   return (
@@ -108,17 +132,7 @@ const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
               <ShoppingBasketIcon />
             </IconButton>
           </Tooltip>
-          <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            slotProps={{
-              list: {
-                "aria-labelledby": "basic-button",
-              },
-            }}
-          >
+          <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
             {packages.length
               ? packages.map((eachPackage, i) => {
                   const productIsInPackage = checkProductExistsInCurrentPackage(
@@ -126,19 +140,36 @@ const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
                     product.id
                   );
 
+                  const isPackageFull = isPackageIsFullByRole(eachPackage);
+
                   const packageName = eachPackage.packageName?.length
                     ? eachPackage.packageName
                     : `Unnamed package ${i + 1}`;
 
-                  const optionText = productIsInPackage
-                    ? "- Remove from"
-                    : "+ Add to";
+                  let optionText: string;
+                  let textColor: string;
+
+                  if (productIsInPackage) {
+                    optionText = "- Remove from";
+                    textColor = "red";
+                  } else if (isPackageFull) {
+                    optionText = "(Full Package)";
+                    textColor = "GrayText";
+                  } else {
+                    optionText = "+ Add to";
+                    textColor = "green";
+                  }
+
                   return (
                     <MenuItem
                       key={eachPackage.packageId}
-                      sx={{ color: productIsInPackage ? "red" : "green" }}
+                      sx={{ color: textColor }}
                       onClick={() =>
-                        handleAddToPackage(product, eachPackage.packageId)
+                        handleAddOrRemoveProduct(
+                          productIsInPackage,
+                          eachPackage,
+                          product
+                        )
                       }
                     >
                       {`${optionText} ${packageName}`}
@@ -146,19 +177,21 @@ const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
                   );
                 })
               : null}
-            <MenuItem onClick={handleClickOpenPackageName}>
-              + Add to a new package
-            </MenuItem>
+            {canAddPackage ? (
+              <MenuItem onClick={handleClickOpenPackageName}>
+                + Add to a new package
+              </MenuItem>
+            ) : (
+              <MenuItem sx={{ color: "GrayText" }}>
+                You reach your limit of packages
+              </MenuItem>
+            )}
             <Dialog
               open={openPackageName}
               onClose={handleClosePackageName}
               fullWidth
-              aria-labelledby="alert-dialog-title"
-              aria-describedby="alert-dialog-description"
             >
-              <DialogTitle id="alert-dialog-title">
-                Name your package
-              </DialogTitle>
+              <DialogTitle>Name your package</DialogTitle>
               <DialogContent>
                 <TextField
                   sx={{ marginTop: "12px" }}

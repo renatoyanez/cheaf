@@ -1,20 +1,13 @@
-import {
-  createContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
-import {
-  collection,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  getDocs,
-} from "firebase/firestore";
-import { db } from "../../firebase/firebase";
+import { createContext, useEffect, useState, ReactNode } from "react";
 import { Package } from "../../types/package";
 import { Product } from "../../types/products";
+import {
+  dbLoadPackages,
+  dbAddPackage,
+  dbUpdatePackage,
+  dbDeletePackage,
+} from "../../firebase/packages";
+import { Roles } from "../../enums/auth";
 
 type PackagesContextType = {
   packages: Package[];
@@ -26,12 +19,21 @@ type PackagesContextType = {
     newProduct: Product,
     packageId?: string
   ) => Promise<void>;
+  canAddPackage: boolean;
+  handleRemoveProductFromPackage: (
+    currentPackageProducts: Product[],
+    productId: number,
+    packageId: string
+  ) => void;
+  canAddProducts: boolean;
+  isPackageIsFullByRole: (currentPackage: Package) => boolean;
 };
 
 interface IPackagesProviderProps {
   userId: string;
   children: ReactNode;
   userEmail: string;
+  userRole: Roles;
 }
 
 export const PackagesContext = createContext<PackagesContextType | null>(null);
@@ -40,53 +42,65 @@ export const PackagesProvider = ({
   userId,
   children,
   userEmail,
+  userRole,
 }: IPackagesProviderProps) => {
   const [packages, setPackages] = useState<Package[]>([]);
+  const [canAddPackage, setCanAddPackage] = useState(true);
+  const [canAddProducts, setCanAddProducts] = useState(true);
 
   const loadPackages = async () => {
-    const ref = collection(db, "users", userId, "packages");
-    const snapshot = await getDocs(ref);
-    const result = snapshot.docs.map((doc) => ({
-      packageId: doc.id,
-      ...doc.data(),
-    })) as Package[];
-    setPackages(result);
+    try {
+      const result = await dbLoadPackages(userId);
+      setPackages(result);
+    } catch (err) {
+      console.error("Failed to load packages:", err);
+    }
   };
 
   const addPackage = async (newPackage: Omit<Package, "packageId">) => {
-    const ref = collection(db, "users", userId, "packages");
-    const docRef = await addDoc(ref, { ...newPackage, createdAt: new Date() });
-
-    const packageName = newPackage.packageName?.length
-      ? newPackage.packageName
-      : `Unnamed package ${packages.length}`;
-    setPackages((prev) => [
-      ...prev,
-      {
-        ...newPackage,
-        packageId: docRef.id,
-        packageName,
-      },
-    ]);
+    if (canAddPackage) {
+      const result = await dbAddPackage(newPackage, userId, packages);
+      setPackages((prev) => [...prev, result]);
+    }
   };
 
   const updatePackage = async (
-    id: string,
+    packageId: string,
     updates: Partial<Package>
   ): Promise<void> => {
-    const ref = doc(db, "users", userId, "packages", id);
-    await updateDoc(ref, updates);
-    setPackages((prev) =>
-      prev.map((pack) =>
-        pack.packageId === id ? { ...pack, ...updates } : pack
-      )
+    const currentPackage = packages.find(
+      (pack) => pack.packageId === packageId
     );
+
+    if (currentPackage) {
+      if (!isPackageIsFullByRole(currentPackage)) {
+        await dbUpdatePackage(userId, packageId, updates).then(() => {
+          setPackages((prev) =>
+            prev.map((pack) =>
+              pack.packageId === packageId ? { ...pack, ...updates } : pack
+            )
+          );
+        });
+      } else {
+        setCanAddProducts(false);
+      }
+    }
   };
 
-  const deletePackage = async (id: string): Promise<void> => {
-    const ref = doc(db, "users", userId, "packages", id);
-    await deleteDoc(ref);
-    setPackages((prev) => prev.filter((pkg) => pkg.packageId !== id));
+  const deletePackage = async (packageId: string): Promise<void> => {
+    await dbDeletePackage(userId, packageId);
+    setPackages((prev) => prev.filter((pkg) => pkg.packageId !== packageId));
+  };
+
+  const handleRemoveProductFromPackage = (
+    currentPackageProducts: Product[],
+    productId: number,
+    packageId: string
+  ) => {
+    const updatedListOfProducts = currentPackageProducts.filter(
+      (prod) => prod.id !== productId
+    );
+    updatePackage(packageId, { products: [...updatedListOfProducts] });
   };
 
   const handleAddToPackage = async (
@@ -121,9 +135,38 @@ export const PackagesProvider = ({
     }
   };
 
+  const isPackageIsFullByRole = (currentPackage: Package) => {
+    const isFrequentAndHasLessThanSeven =
+      userRole === Roles.FREQUENT && currentPackage.products.length < 7;
+    const isNotFrequentAndHasLessThanFour =
+      userRole !== Roles.FREQUENT && currentPackage.products.length < 4;
+
+    return !(isFrequentAndHasLessThanSeven || isNotFrequentAndHasLessThanFour);
+  };
+
   useEffect(() => {
-    if (userId) loadPackages();
-  }, [userId]);
+    // Only frequent clients can have more than 3 packages
+    // and 7 tops. The rest can have up to 3
+    if (userRole != Roles.FREQUENT) {
+      if (packages.length <= 2) {
+        setCanAddPackage(true);
+      } else {
+        setCanAddPackage(false);
+      }
+    } else {
+      if (packages.length <= 6) {
+        setCanAddPackage(true);
+      } else {
+        setCanAddPackage(false);
+      }
+    }
+  }, [userRole, packages.length]);
+
+  useEffect(() => {
+    if (userId && userRole) {
+      loadPackages();
+    }
+  }, [userId, userRole]);
 
   return (
     <PackagesContext.Provider
@@ -134,6 +177,10 @@ export const PackagesProvider = ({
         updatePackage,
         deletePackage,
         handleAddToPackage,
+        handleRemoveProductFromPackage,
+        canAddPackage,
+        canAddProducts,
+        isPackageIsFullByRole,
       }}
     >
       {children}

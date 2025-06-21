@@ -3,7 +3,7 @@ import { auth, db } from "../../firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import type { User } from "firebase/auth";
 import { Roles } from "../../enums/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 
 interface IUser {
   currentUser: User;
@@ -32,15 +32,16 @@ export const AuthProvider = ({ children }: { children: any }) => {
       setIsUserLoggedIn(true);
 
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      // set this role to the context
       const role = userDoc.exists() ? userDoc.data().role : Roles.USER;
       setCurrentRole(role);
       localStorage.setItem("role", JSON.stringify(role));
+      setLoading(false);
     } else {
       setCurrentRole(Roles.VISITOR);
       setCurrentUser(null);
       setIsUserLoggedIn(false);
       localStorage.setItem("role", JSON.stringify(Roles.VISITOR));
+      setLoading(false);
     }
 
     setLoading(false);
@@ -63,4 +64,4 @@ export const AuthProvider = ({ children }: { children: any }) => {
       {!loading && children}
     </AuthContext.Provider>
   );
-}
+};

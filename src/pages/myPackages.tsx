@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
@@ -17,6 +17,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { usePackages } from "../hooks/usePackages";
 import { Product } from "../types/products";
+import { useAuth } from "../context/authContext";
+import { Roles } from "../enums/auth";
+import { createInternalPackageIfNeeded } from "../firebase/packages";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -47,10 +50,19 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 const myPackages = () => {
-  const { packages, addPackage, updatePackage, deletePackage } = usePackages();
+  const { currentRole, currentUser } = useAuth();
+  const {
+    packages,
+    deletePackage,
+    loadPackages,
+    canAddPackage,
+    handleRemoveProductFromPackage,
+  } = usePackages();
 
   const [expanded, setExpanded] = React.useState(false);
   const [expandedPackage, setExpandedPackage] = useState("");
+  const [canHaveSpecialPackage, setCanHaveSpecialPackage] = useState(false);
+  const [hasSpecialPackage, setHasSpecialPackage] = useState(false);
 
   const handleExpandClick = (selectedPackageId: string) => {
     setExpandedPackage(selectedPackageId);
@@ -63,22 +75,52 @@ const myPackages = () => {
     }, 0);
   };
 
-  const handleRemoveProductFromPackage = (
-    currentPackageProducts: Product[],
-    productId: number,
-    packageId: string
-  ) => {
-    const updatedListOfProducts = currentPackageProducts.filter(
-      (prod) => prod.id !== productId
-    );
-    updatePackage(packageId, { products: [...updatedListOfProducts] });
+  const handleCreateSpecialPackage = async () => {
+    await createInternalPackageIfNeeded(currentUser.uid, currentUser.email)
+      .then(() => {
+        setHasSpecialPackage(true);
+        setCanHaveSpecialPackage(false);
+      })
+      .then(() => {
+        loadPackages();
+      })
+      .catch((err) => console.log(err, "Error creating special package"));
   };
+
+  useEffect(() => {
+    if (currentRole === Roles.INTERNAL && !hasSpecialPackage && canAddPackage) {
+      setCanHaveSpecialPackage(true);
+    }
+  }, [currentRole, hasSpecialPackage, canAddPackage]);
+
+  useEffect(() => {
+    const alreadyHasSpecialPack = packages.some(
+      (pack) => pack.isInternal === true
+    );
+    if (currentRole === Roles.INTERNAL && alreadyHasSpecialPack) {
+      setHasSpecialPackage(true);
+    }
+
+    if (!canAddPackage) {
+      setCanHaveSpecialPackage(false);
+    }
+  }, [currentRole, packages, packages.length, canAddPackage]);
 
   return (
     <>
       <Typography variant="h5" component="div">
         My Packages
       </Typography>
+
+      {canHaveSpecialPackage && !hasSpecialPackage && canAddPackage ? (
+        <Button
+          variant="outlined"
+          onClick={() => handleCreateSpecialPackage()}
+          size="small"
+        >
+          Add special Package (Only for Internals)
+        </Button>
+      ) : null}
 
       <Box sx={{ flexGrow: 1 }}>
         <Grid
@@ -94,7 +136,6 @@ const myPackages = () => {
                 key={currentPackage.packageId}
                 size={{ xs: 2, sm: 4, md: 4 }}
               >
-                {/* <Box sx={{ maxWidth: 275 }}> */}
                 <Card variant="outlined">
                   <CardContent>
                     <Typography
@@ -123,7 +164,7 @@ const myPackages = () => {
                     >
                       Remove Package
                     </Button>
-                    <Typography>Price: ${packPrice}</Typography>
+                    <Typography>Price: ${packPrice.toFixed(2)}</Typography>
                     <ExpandMore
                       expand={
                         expandedPackage === currentPackage.packageId && expanded
@@ -151,7 +192,7 @@ const myPackages = () => {
                       <MenuList>
                         {currentPackage.products.map((eachProd) => {
                           return (
-                            <MenuItem disableGutters divider>
+                            <MenuItem key={eachProd.id} disableGutters divider>
                               <img
                                 style={{ width: "52px" }}
                                 src={eachProd.thumbnail}
@@ -184,7 +225,6 @@ const myPackages = () => {
                     </CardContent>
                   </Collapse>
                 </Card>
-                {/* </Box> */}
               </Grid>
             );
           })}

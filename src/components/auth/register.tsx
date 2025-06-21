@@ -128,7 +128,6 @@ const Register = () => {
     } = event;
 
     setRoles(
-      // On autofill we get a stringified value.
       typeof value === "string" ? value.split(",") : value
     );
   };
