@@ -56,8 +56,6 @@ npm install
 
 # Estructura
 
-Each app project has the following project structure:
-
     src
     ├── components
     ├── context
