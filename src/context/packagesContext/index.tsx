@@ -135,19 +135,9 @@ export const PackagesProvider = ({
   };
 
   const isPackageIsFullByRole = (currentPackage: Package) => {
-    if (userRole === Roles.FREQUENT) {
-      if (currentPackage.products.length < 7) {
-        return false;
-      } else {
-        return true;
-      }
-    } else {
-      if (currentPackage.products.length < 4) {
-        return false;
-      } else {
-        return true;
-      }
-    }
+    return (
+      currentPackage.products.length >= (userRole === Roles.FREQUENT ? 7 : 4)
+    );
   };
 
   useEffect(() => {
