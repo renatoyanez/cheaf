@@ -29,7 +29,7 @@ interface IProductCardProps {
 }
 
 const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, isUserLoggedIn } = useAuth();
   const {
     packages,
     addPackage,
@@ -79,7 +79,7 @@ const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
     productIsInPackage: boolean,
     currentPack?: Package,
     newProduct?: Product
-  ) => {    
+  ) => {
     if (productIsInPackage) {
       handleRemoveProductFromPackage(
         currentPack.products,
@@ -123,98 +123,101 @@ const ProductCard: React.FC<IProductCardProps> = ({ product }) => {
         sx={{ display: "flex", justifyContent: "space-between" }}
         disableSpacing
       >
-        <>
-          <Tooltip title="Add to a package">
-            <IconButton
-              aria-label="add or remove from package"
-              onClick={handleClick}
-            >
-              <ShoppingBasketIcon />
-            </IconButton>
-          </Tooltip>
-          <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-            {packages.length
-              ? packages.map((eachPackage, i) => {
-                  const productIsInPackage = checkProductExistsInCurrentPackage(
-                    eachPackage,
-                    product.id
-                  );
+        {isUserLoggedIn && (
+          <>
+            <Tooltip title="Add to a package">
+              <IconButton
+                aria-label="add or remove from package"
+                onClick={handleClick}
+              >
+                <ShoppingBasketIcon />
+              </IconButton>
+            </Tooltip>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+              {packages.length
+                ? packages.map((eachPackage, i) => {
+                    const productIsInPackage =
+                      checkProductExistsInCurrentPackage(
+                        eachPackage,
+                        product.id
+                      );
 
-                  const isPackageFull = isPackageIsFullByRole(eachPackage);
+                    const isPackageFull = isPackageIsFullByRole(eachPackage);
 
-                  const packageName = eachPackage.packageName?.length
-                    ? eachPackage.packageName
-                    : `Unnamed package ${i + 1}`;
+                    const packageName = eachPackage.packageName?.length
+                      ? eachPackage.packageName
+                      : `Unnamed package ${i + 1}`;
 
-                  let optionText: string;
-                  let textColor: string;
+                    let optionText: string;
+                    let textColor: string;
 
-                  if (productIsInPackage) {
-                    optionText = "- Remove from";
-                    textColor = "red";
-                  } else if (isPackageFull) {
-                    optionText = "(Full Package)";
-                    textColor = "GrayText";
-                  } else {
-                    optionText = "+ Add to";
-                    textColor = "green";
-                  }
+                    if (productIsInPackage) {
+                      optionText = "- Remove from";
+                      textColor = "red";
+                    } else if (isPackageFull) {
+                      optionText = "(Full Package)";
+                      textColor = "GrayText";
+                    } else {
+                      optionText = "+ Add to";
+                      textColor = "green";
+                    }
 
-                  return (
-                    <MenuItem
-                      key={eachPackage.packageId}
-                      sx={{ color: textColor }}
-                      onClick={() =>
-                        handleAddOrRemoveProduct(
-                          productIsInPackage,
-                          eachPackage,
-                          product
-                        )
-                      }
-                    >
-                      {`${optionText} ${packageName}`}
-                    </MenuItem>
-                  );
-                })
-              : null}
-            {canAddPackage ? (
-              <MenuItem onClick={handleClickOpenPackageName}>
-                + Add to a new package
-              </MenuItem>
-            ) : (
-              <MenuItem sx={{ color: "GrayText" }}>
-                You reach your limit of packages
-              </MenuItem>
-            )}
-            <Dialog
-              open={openPackageName}
-              onClose={handleClosePackageName}
-              fullWidth
-            >
-              <DialogTitle>Name your package</DialogTitle>
-              <DialogContent>
-                <TextField
-                  sx={{ marginTop: "12px" }}
-                  fullWidth
-                  label="Package Name"
-                  value={packageName}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setPackageName(event.target.value);
-                  }}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button
-                  variant="outlined"
-                  disabled={!packageName.length}
-                  onClick={() => handleCreatePackage()}
-                >
-                  Accept
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </Menu>
-        </>
+                    return (
+                      <MenuItem
+                        key={eachPackage.packageId}
+                        sx={{ color: textColor }}
+                        onClick={() =>
+                          handleAddOrRemoveProduct(
+                            productIsInPackage,
+                            eachPackage,
+                            product
+                          )
+                        }
+                      >
+                        {`${optionText} ${packageName}`}
+                      </MenuItem>
+                    );
+                  })
+                : null}
+              {canAddPackage ? (
+                <MenuItem onClick={handleClickOpenPackageName}>
+                  + Add to a new package
+                </MenuItem>
+              ) : (
+                <MenuItem sx={{ color: "GrayText" }}>
+                  You reach your limit of packages
+                </MenuItem>
+              )}
+              <Dialog
+                open={openPackageName}
+                onClose={handleClosePackageName}
+                fullWidth
+              >
+                <DialogTitle>Name your package</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    sx={{ marginTop: "12px" }}
+                    fullWidth
+                    label="Package Name"
+                    value={packageName}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setPackageName(event.target.value);
+                    }}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button
+                    variant="outlined"
+                    disabled={!packageName.length}
+                    onClick={() => handleCreatePackage()}
+                  >
+                    Accept
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </Menu>
+          </>
+        )}
 
         <Typography variant="h6">${product.price}</Typography>
       </CardActions>
