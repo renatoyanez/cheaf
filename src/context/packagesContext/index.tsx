@@ -73,17 +73,16 @@ export const PackagesProvider = ({
     );
 
     if (currentPackage) {
-      if (!isPackageIsFullByRole(currentPackage)) {
-        await dbUpdatePackage(userId, packageId, updates).then(() => {
-          setPackages((prev) =>
-            prev.map((pack) =>
-              pack.packageId === packageId ? { ...pack, ...updates } : pack
-            )
-          );
-        });
-      } else {
-        setCanAddProducts(false);
+      await dbUpdatePackage(userId, packageId, updates).then(() => {
+        setPackages((prev) =>
+          prev.map((pack) =>
+            pack.packageId === packageId ? { ...pack, ...updates } : pack
+          )
+        );
+      });
+      if (isPackageIsFullByRole(currentPackage)) {
       }
+      setCanAddProducts(false);
     }
   };
 
@@ -136,12 +135,19 @@ export const PackagesProvider = ({
   };
 
   const isPackageIsFullByRole = (currentPackage: Package) => {
-    const isFrequentAndHasLessThanSeven =
-      userRole === Roles.FREQUENT && currentPackage.products.length < 7;
-    const isNotFrequentAndHasLessThanFour =
-      userRole !== Roles.FREQUENT && currentPackage.products.length < 4;
-
-    return !(isFrequentAndHasLessThanSeven || isNotFrequentAndHasLessThanFour);
+    if (userRole === Roles.FREQUENT) {
+      if (currentPackage.products.length < 7) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      if (currentPackage.products.length < 4) {
+        return false;
+      } else {
+        return true;
+      }
+    }
   };
 
   useEffect(() => {
